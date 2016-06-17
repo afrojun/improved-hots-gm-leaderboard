@@ -11,51 +11,57 @@ var TABLE_CLASS = 'leaderboards-ranking-table';
 
 function addColumnHeader(index, heading) {
   var tblHeadObj = document.getElementsByClassName(TABLE_CLASS)[0].tHead;
-  var newTH = tblHeadObj.rows[0].insertCell(index);
-  newTH.outerHTML = '<th>' + heading + '</th>';
+  if (tblHeadObj.rows[0].cells[index].innerHTML != heading) {
+    var newTH = tblHeadObj.rows[0].insertCell(index);
+    newTH.outerHTML = '<th>' + heading + '</th>';
+  }
 }
 
-function addWinPercentColumn()
-{
+function updateTable() {
+  // Update table headings
   addColumnHeader(5, 'WIN %')
+  var winsHeader = document.getElementsByClassName(TABLE_CLASS)[0].tHead.rows[0].cells[4];
+  winsHeader.innerHTML = 'WIN/LOSS';
 
-  var tblBodyObj = document.getElementsByClassName(TABLE_CLASS)[0].tBodies[0];
-  for (var i=0; i<tblBodyObj.rows.length; i++) {
-    var newCell = tblBodyObj.rows[i].insertCell(5);
-    var tblRow = tblBodyObj.rows[i];
-    newCell.innerHTML = ((parseInt(tblRow.cells[4].innerHTML)/parseInt(tblRow.cells[3].innerHTML))*100).toFixed(0) + '%';
-  }
-}
-
-function addLinkToHotsLogs()
-{
-  var tblBodyObj = document.getElementsByClassName(TABLE_CLASS)[0].tBodies[0];
-  for (var i=0; i<tblBodyObj.rows.length; i++) {
-    var battleTagCell = tblBodyObj.rows[i].cells[2];
-
-    var link = document.createElement("a");
-    link.setAttribute("href", "http://www.hotslogs.com/PlayerSearch?Name=" + battleTagCell.innerHTML)
-    var linkText = document.createTextNode(battleTagCell.innerHTML);
-    link.appendChild(linkText);
-
-    battleTagCell.innerHTML = '';
-    battleTagCell.appendChild(link);
-  }
-}
-
-function addWinLossColumn() {
-  var winHeader = document.getElementsByClassName(TABLE_CLASS)[0].tHead.rows[0].cells[4];
-  winHeader.innerHTML = 'WIN/LOSS';
-
+  // Update table contents
   var tblBodyObj = document.getElementsByClassName(TABLE_CLASS)[0].tBodies[0];
   for (var i=0; i<tblBodyObj.rows.length; i++) {
     var tblRow = tblBodyObj.rows[i];
-    var wins = tblRow.cells[4].innerHTML;
-    var losses = parseInt(tblRow.cells[3].innerHTML) - parseInt(tblRow.cells[4].innerHTML);
-    tblRow.cells[4].innerHTML = wins + '/' + losses;
+    var battleTagCell = tblRow.cells[2];
+    var gamesCell = tblRow.cells[3];
+    var winsCell = tblRow.cells[4];
+    var winPercentCell = tblRow.cells[5];
+
+    // Add a link to HotsLogs
+    if (battleTagCell.children.length == 0) {
+      var link = document.createElement("a");
+      link.setAttribute("href", "http://www.hotslogs.com/PlayerSearch?Name=" + battleTagCell.innerHTML)
+      var linkText = document.createTextNode(battleTagCell.innerHTML);
+      link.appendChild(linkText);
+
+      battleTagCell.innerHTML = '';
+      battleTagCell.appendChild(link);
+    }
+
+    // Add a new win percent column
+    if (!winPercentCell.innerHTML.includes('%')) {
+      var newCell = tblRow.insertCell(5);
+      newCell.innerHTML = ((parseInt(winsCell.innerHTML)/parseInt(gamesCell.innerHTML))*100).toFixed(0) + '%';
+    }
+
+    // Convert 'wins' to 'win/loss'
+    if (!winsCell.innerHTML.includes('/')) {
+      var wins = parseInt(winsCell.innerHTML);
+      var losses = parseInt(gamesCell.innerHTML) - wins;
+      winsCell.innerHTML = wins + '/' + losses;
+    }
   }
 }
 
-addWinPercentColumn();
-addLinkToHotsLogs();
-addWinLossColumn();
+window.onload = function() {
+  updateTable();
+}
+
+document.getElementById('leaderboard-rankings-loader').onclick = function() {
+  setTimeout(updateTable, 2500);
+}
