@@ -3,11 +3,20 @@
 // @description Improvements to the table rendering on the HoTS grand master leaderboard
 // @namespace   http://battle.net/heroes
 // @include     http://*.battle.net/heroes/*
-// @version     1
+// @version     1.1
 // @grant       none
 // ==/UserScript==
 
 var TABLE_CLASS = 'leaderboards-ranking-table';
+var COLUMNS = {
+  RANK: 0,
+  BATTLETAG: 1,
+  HIGHEST_RANK: 2,
+  RANK_POINTS: 3,
+  GAMES: 4,
+  WINS: 5,
+  WIN_PERCENT: 6
+}
 
 function addColumnHeader(index, heading) {
   var tblHeadObj = document.getElementsByClassName(TABLE_CLASS)[0].tHead;
@@ -19,18 +28,18 @@ function addColumnHeader(index, heading) {
 
 function updateTable() {
   // Update table headings
-  addColumnHeader(5, 'WIN %')
-  var winsHeader = document.getElementsByClassName(TABLE_CLASS)[0].tHead.rows[0].cells[4];
+  addColumnHeader(COLUMNS.WIN_PERCENT, 'WIN %')
+  var winsHeader = document.getElementsByClassName(TABLE_CLASS)[0].tHead.rows[0].cells[COLUMNS.WINS];
   winsHeader.innerHTML = 'WIN/LOSS';
 
   // Update table contents
   var tblBodyObj = document.getElementsByClassName(TABLE_CLASS)[0].tBodies[0];
   for (var i=0; i<tblBodyObj.rows.length; i++) {
     var tblRow = tblBodyObj.rows[i];
-    var battleTagCell = tblRow.cells[2];
-    var gamesCell = tblRow.cells[3];
-    var winsCell = tblRow.cells[4];
-    var winPercentCell = tblRow.cells[5];
+    var battleTagCell = tblRow.cells[COLUMNS.BATTLETAG];
+    var gamesCell = tblRow.cells[COLUMNS.GAMES];
+    var winsCell = tblRow.cells[COLUMNS.WINS];
+    var winPercentCell = tblRow.cells[COLUMNS.WIN_PERCENT];
 
     // Add a link to HotsLogs
     if (battleTagCell.children.length == 0) {
@@ -44,8 +53,8 @@ function updateTable() {
     }
 
     // Add a new win percent column
-    if (!winPercentCell.innerHTML.includes('%')) {
-      var newCell = tblRow.insertCell(5);
+    if (tblRow.cells.length <= 10) {
+      var newCell = tblRow.insertCell(COLUMNS.WIN_PERCENT);
       newCell.innerHTML = ((parseInt(winsCell.innerHTML)/parseInt(gamesCell.innerHTML))*100).toFixed(0) + '%';
     }
 
