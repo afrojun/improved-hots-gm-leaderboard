@@ -5,6 +5,8 @@
 // @include     http://*.battle.net/heroes/*
 // @version     1.1
 // @grant       none
+// @require     https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js
+// @require     https://raw.githubusercontent.com/christianbach/tablesorter/master/jquery.tablesorter.min.js
 // ==/UserScript==
 
 var TABLE_CLASS = 'leaderboards-ranking-table';
@@ -18,6 +20,10 @@ var COLUMNS = {
   WIN_PERCENT: 6
 }
 
+function getHeader(index) {
+  return document.getElementsByClassName(TABLE_CLASS)[0].tHead.rows[0].cells[index];
+}
+
 function addColumnHeader(index, heading) {
   var tblHeadObj = document.getElementsByClassName(TABLE_CLASS)[0].tHead;
   if (tblHeadObj.rows[0].cells[index].innerHTML != heading) {
@@ -26,12 +32,13 @@ function addColumnHeader(index, heading) {
   }
 }
 
-function updateTable() {
+function updateHeaders() {
   // Update table headings
-  addColumnHeader(COLUMNS.WIN_PERCENT, 'WIN %')
-  var winsHeader = document.getElementsByClassName(TABLE_CLASS)[0].tHead.rows[0].cells[COLUMNS.WINS];
-  winsHeader.innerHTML = 'WIN/LOSS';
+  addColumnHeader(COLUMNS.WIN_PERCENT, 'WIN %');
+  getHeader(COLUMNS.WINS).innerHTML = 'WIN/LOSS';
+}
 
+function updateTable() {
   // Update table contents
   var tblBodyObj = document.getElementsByClassName(TABLE_CLASS)[0].tBodies[0];
   for (var i=0; i<tblBodyObj.rows.length; i++) {
@@ -67,8 +74,18 @@ function updateTable() {
   }
 }
 
+function enableTablesorter() {
+  var table = document.getElementsByClassName(TABLE_CLASS)[0];
+  var tablesorterClass = document.createAttribute("class");
+  tablesorterClass.value = TABLE_CLASS + " tablesorter";
+  table.attributes.setNamedItem(tablesorterClass);
+  $("."+TABLE_CLASS).tablesorter();
+}
+
 window.onload = function() {
+  updateHeaders();
   updateTable();
+  enableTablesorter();
 }
 
 document.getElementById('leaderboard-rankings-loader').onclick = function() {
